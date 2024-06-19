@@ -1,0 +1,19 @@
+services:
+  api:
+    container_name: blogapi
+    image: blogapi:devlatest
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.Dev
+    build:
+      context: .
+      dockerfile: cmd/blog/Dockerfile
+  mongo:
+    container_name: mongodb
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    env_file:
+      - .env.Dev
+    restart: on-failure
