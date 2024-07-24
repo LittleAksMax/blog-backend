@@ -22,7 +22,10 @@ go.work
 go.work.sum
 
 # Environment
-.env*
+.env.Dev
 
 # Binaries
 bin/
+
+# Docker volumers
+mongodb/

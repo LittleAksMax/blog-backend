@@ -1,19 +1,24 @@
 services:
-  api:
-    container_name: blogapi
-    image: blogapi:devlatest
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env.Dev
-    build:
-      context: .
-      dockerfile: cmd/blog/Dockerfile
-  mongo:
-    container_name: mongodb
+#  api:
+#    container_name: blogapi
+#    image: blogapi:devlatest
+#    depends_on:
+#      - blog_db
+#    ports:
+#      - "8080:8080"
+#    env_file:
+#      - .env.Dev
+#    build:
+#      context: .
+#      dockerfile: cmd/blog/Dockerfile
+  blog_db:
+    container_name: blog_db
+    hostname: blog_db
     image: mongo:latest
     ports:
       - "27017:27017"
     env_file:
       - .env.Dev
     restart: on-failure
+    volumes:
+      - ./mongodb:/data/db
