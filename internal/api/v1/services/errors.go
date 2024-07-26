@@ -17,9 +17,9 @@ func (e NotFoundErr) Error() string {
 }
 
 type ConflictErr struct {
-	field string
+	msg string
 }
 
 func (err ConflictErr) Error() string {
-	return "conflict in field '" + err.field + "'. perhaps item with this field already exists"
+	return err.msg
 }

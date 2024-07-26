@@ -20,7 +20,7 @@ func NewPostServiceImpl(dbCfg *db.Config) *PostServiceImpl {
 	}
 }
 
-func (ps *PostServiceImpl) GetPosts(ctx context.Context, pf *models.PagedQuery, pq *models.PostQuery) ([]models.PostDto, error) {
+func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, pf *models.PostFilter) ([]models.PostDto, error) {
 	cursor, err := ps.posts.Find(ctx, bson.D{}) // TODO: filters from pf and pq
 
 	if err != nil {
@@ -105,7 +105,6 @@ func (ps *PostServiceImpl) CreatePost(ctx context.Context, dto *models.PostDto) 
 	res, err := ps.posts.InsertOne(ctx, post)
 
 	if err != nil {
-		// TODO: handle insert err
 		return err
 	}
 
@@ -138,12 +137,16 @@ func (ps *PostServiceImpl) UpdatePost(ctx context.Context, id primitive.ObjectID
 	res, err := ps.posts.ReplaceOne(ctx, primitive.D{{"_id", id}}, post)
 
 	if err != nil {
-		return err
+		// chances are this is a conflict
+		return &ConflictErr{msg: err.Error()}
 	}
 
 	if res.MatchedCount == 0 {
 		return &NotFoundErr{id: id}
 	}
+
+	// ensure correctly set DTO value for ID
+	dto.Id = id.Hex()
 
 	return nil
 }
@@ -155,6 +158,8 @@ func (ps *PostServiceImpl) DeletePost(ctx context.Context, id primitive.ObjectID
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return &NotFoundErr{id: id}
+		} else {
+			return err
 		}
 	}
 

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/models"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/services"
 	"github.com/LittleAksMax/blog-backend/internal/db"
@@ -20,10 +21,10 @@ func NewPostController(ps services.PostService, cps services.ContentParserServic
 }
 
 func (pc *PostController) GetPosts(ctx *gin.Context) {
-	pf := models.PagedQuery{} // TODO: utility for creating this from validation middleware
-	pq := models.PostQuery{}  // TODO: utility for creating this from validation middleware
+	pf := ctx.MustGet("pf").(*models.PagedQuery) // post filter
+	pq := ctx.MustGet("pq").(*models.PostFilter) // pagination query
 
-	posts, err := pc.ps.GetPosts(ctx.Request.Context(), &pf, &pq)
+	posts, err := pc.ps.GetPosts(ctx.Request.Context(), pf, pq)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -33,27 +34,26 @@ func (pc *PostController) GetPosts(ctx *gin.Context) {
 }
 
 func (pc *PostController) GetPost(ctx *gin.Context) {
-	idParam, exists := ctx.Get("id")
-	if !exists {
-		panic("parameter 'id' must be set")
-	}
-	id := idParam.(primitive.ObjectID)
+	id := ctx.MustGet("id").(primitive.ObjectID)
 
 	post, err := pc.ps.GetPost(ctx, id)
 
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "post with ID " + id.Hex() + " not found."})
+		var nfErr services.NotFoundErr
+		if errors.Is(err, &nfErr) {
+			// changes are the object was not found in the database
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
 	}
 
 	ctx.JSON(http.StatusOK, post)
 }
 
 func (pc *PostController) CreatePost(ctx *gin.Context) {
-	request, exists := ctx.Get("request")
-	if !exists {
-		panic("parameter 'request' must be set")
-	}
-	cpr := request.(*models.CreatePostRequest)
+	cpr := ctx.MustGet("request").(*models.CreatePostRequest)
 
 	currentDate := time.Now()
 	// add to mongo
@@ -71,8 +71,8 @@ func (pc *PostController) CreatePost(ctx *gin.Context) {
 	err := pc.ps.CreatePost(ctx.Request.Context(), &dto)
 
 	if err != nil {
-		// TODO: handle error properly
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		// chances are that caught error is a conflict error
+		ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -81,17 +81,8 @@ func (pc *PostController) CreatePost(ctx *gin.Context) {
 }
 
 func (pc *PostController) UpdatePost(ctx *gin.Context) {
-	idParam, exists := ctx.Get("id")
-	if !exists {
-		panic("parameter 'id' must be set")
-	}
-	id := idParam.(primitive.ObjectID)
-
-	request, exists := ctx.Get("request")
-	if !exists {
-		panic("parameter 'request' must be set")
-	}
-	upr := request.(*models.UpdatePostRequest)
+	id := ctx.MustGet("id").(primitive.ObjectID)
+	upr := ctx.MustGet("request").(*models.UpdatePostRequest)
 
 	currentDate := time.Now()
 	// add to mongo
@@ -110,8 +101,13 @@ func (pc *PostController) UpdatePost(ctx *gin.Context) {
 	err := pc.ps.UpdatePost(ctx.Request.Context(), id, &dto)
 
 	if err != nil {
-		// TODO: handle error properly
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		var nfErr services.NotFoundErr
+		if errors.Is(err, &nfErr) {
+			// changes are the object was not found in the database
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		} else {
+			ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		}
 		return
 	}
 
@@ -120,18 +116,19 @@ func (pc *PostController) UpdatePost(ctx *gin.Context) {
 }
 
 func (pc *PostController) DeletePost(ctx *gin.Context) {
-	idParam, exists := ctx.Get("id")
-	if !exists {
-		panic("parameter 'id' must be set")
-	}
-	id := idParam.(primitive.ObjectID)
+	id := ctx.MustGet("id").(primitive.ObjectID)
 
 	err := pc.ps.DeletePost(ctx, id)
 
 	if err != nil {
-		// TODO: handle error
-		// TODO: handle `not found` and other errors respectively
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		var nfErr services.NotFoundErr
+		if errors.Is(err, &nfErr) {
+			// changes are the object was not found in the database
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
 	}
 
 	ctx.Status(http.StatusNoContent)

@@ -7,7 +7,7 @@ import (
 )
 
 type PostService interface {
-	GetPosts(ctx context.Context, pf *models.PagedQuery, pq *models.PostQuery) ([]models.PostDto, error)
+	GetPosts(ctx context.Context, pq *models.PagedQuery, pf *models.PostFilter) ([]models.PostDto, error)
 	GetPost(ctx context.Context, id primitive.ObjectID) (*models.PostDto, error)
 	CreatePost(ctx context.Context, dto *models.PostDto) error
 	UpdatePost(ctx context.Context, id primitive.ObjectID, dto *models.PostDto) error

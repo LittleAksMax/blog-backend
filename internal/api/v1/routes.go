@@ -10,7 +10,7 @@ import (
 func addPostsRoutes(versionGroup *gin.RouterGroup, pc *controllers.PostController) {
 	postsGroup := versionGroup.Group("/posts")
 	{
-		postsGroup.GET("/", pc.GetPosts)
+		postsGroup.GET("/", validators.QueryValidate, pc.GetPosts)
 		postsGroup.GET("/:id", validators.RouteIdValidate(), pc.GetPost)
 		postsGroup.POST("/", validators.ReqValidate[*models.CreatePostRequest], pc.CreatePost)
 		postsGroup.PUT("/:id", validators.RouteIdValidate(), validators.ReqValidate[*models.UpdatePostRequest], pc.UpdatePost)

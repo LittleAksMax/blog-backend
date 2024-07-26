@@ -10,9 +10,9 @@ import (
 )
 
 type Config struct {
-	Client *mongo.Client
-	db     *mongo.Database
-	Posts  *mongo.Collection
+	Client   *mongo.Client
+	Database *mongo.Database
+	Posts    *mongo.Collection
 }
 
 func InitDb(ctx context.Context, host string, port int, user string, passwd string, dbName string) *Config {
@@ -40,9 +40,9 @@ func InitDb(ctx context.Context, host string, port int, user string, passwd stri
 	log.Println("Pinged your deployment. You successfully connected to MongoDB!")
 
 	return &Config{
-		Client: client,
-		db:     db,
-		Posts:  db.Collection("posts"),
+		Client:   client,
+		Database: db,
+		Posts:    db.Collection("posts"),
 	}
 
 }

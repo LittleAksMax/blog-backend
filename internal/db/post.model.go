@@ -45,7 +45,7 @@ func PostStatusFromString(s string) (PostStatus, bool) {
 }
 
 type Post struct {
-	Id          primitive.ObjectID `bson:"_id"`
+	Id          primitive.ObjectID `bson:"_id,omitempty"`
 	Title       string             `bson:"title"`
 	Content     string             `bson:"content"`
 	Media       []string           `bson:"media"`

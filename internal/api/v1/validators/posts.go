@@ -1,6 +1,7 @@
 package validators
 
 import (
+	"github.com/LittleAksMax/blog-backend/internal/api/v1/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
@@ -48,4 +49,33 @@ func RouteIdParamValidateWithParam(idParamName string) gin.HandlerFunc {
 
 func RouteIdValidate() gin.HandlerFunc {
 	return RouteIdParamValidateWithParam("id")
+}
+
+func QueryValidate(ctx *gin.Context) {
+	pf := models.PagedQuery{
+		PageNum:  models.DefaultPageNumber,
+		PageSize: models.DefaultPageSize,
+	}
+	pq := models.PostFilter{
+		Title:       nil,
+		Tags:        nil,
+		Collections: nil,
+		Featured:    nil,
+	}
+
+	if err := ctx.BindQuery(&pf); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	if err := ctx.BindQuery(&pq); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.Abort()
+		return
+	}
+
+	ctx.Set("pf", &pf)
+	ctx.Set("pq", &pq)
+	ctx.Next()
 }

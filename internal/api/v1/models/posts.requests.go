@@ -6,15 +6,15 @@ const (
 )
 
 type PagedQuery struct {
-	PageNum  int
-	PageSize int
+	PageNum  int `form:"page_num" binding:"min=1"`
+	PageSize int `form:"page_size" binding:"min=1"`
 }
 
-type PostQuery struct {
-	Title       string
-	Tags        []string
-	Collections []string
-	Featured    bool
+type PostFilter struct {
+	Title       *string  `form:"title"`
+	Tags        []string `form:"tags"`
+	Collections []string `form:"collections"`
+	Featured    *bool    `form:"featured"`
 }
 
 type CreatePostRequest struct {
