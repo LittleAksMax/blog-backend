@@ -20,11 +20,22 @@ func NewPostServiceImpl(dbCfg *db.Config) *PostServiceImpl {
 	}
 }
 
-func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, pf *models.PostFilter) ([]models.PostDto, error) {
-	cursor, err := ps.posts.Find(ctx, bson.D{}) // TODO: filters from pf and pq
+func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, pf *models.PostFilter) ([]models.PostDto, int, error) {
+	qfb := createFilterWithPostFilter(pf)
+	filter := qfb.build()
+
+	// count total number of documents for HATEOAS in pagination
+	totalCount, err := ps.posts.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// fetch documents in current batch using current filter
+	opts := createOptionsWithPagedQuery(pq)
+	cursor, err := ps.posts.Find(ctx, filter, opts)
 
 	if err != nil {
-		return []models.PostDto{}, err
+		return []models.PostDto{}, 0, err
 	}
 
 	defer func() {
@@ -32,12 +43,13 @@ func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, 
 	}()
 
 	// convert result cursor to a slice of DTOs
-	dtos := make([]models.PostDto, cursor.RemainingBatchLength())
+	batchCount := cursor.RemainingBatchLength()
+	dtos := make([]models.PostDto, batchCount)
 	for cursor.Next(ctx) {
 		var post db.Post
 		err := cursor.Decode(&post)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		dtos[cursor.RemainingBatchLength()] = models.PostDto{
 			Id:          post.Id.Hex(),
@@ -54,10 +66,10 @@ func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, 
 	}
 
 	if err := cursor.Err(); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return dtos, nil
+	return dtos, int(totalCount), nil
 }
 
 func (ps *PostServiceImpl) GetPost(ctx context.Context, id primitive.ObjectID) (*models.PostDto, error) {

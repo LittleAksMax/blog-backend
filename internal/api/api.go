@@ -39,7 +39,8 @@ func RunApi(port int, dbCfg *db.Config) {
 func createControllers(dbCfg *db.Config) (*controllers.PostController, *health.HealthController) {
 	ps := services.NewPostServiceImpl(dbCfg)
 	cps := services.NewContentParserServiceImpl()
-	pc := controllers.NewPostController(ps, cps)
+	us := services.NewUriServiceImpl()
+	pc := controllers.NewPostController(ps, cps, us)
 	hc := health.NewHealthController(dbCfg)
 	return pc, hc
 }

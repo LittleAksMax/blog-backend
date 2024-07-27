@@ -14,23 +14,37 @@ import (
 type PostController struct {
 	ps  services.PostService
 	cps services.ContentParserService
+	us  services.UriService
 }
 
-func NewPostController(ps services.PostService, cps services.ContentParserService) *PostController {
-	return &PostController{ps: ps, cps: cps}
+func NewPostController(ps services.PostService, cps services.ContentParserService, us services.UriService) *PostController {
+	return &PostController{ps: ps, cps: cps, us: us}
 }
 
 func (pc *PostController) GetPosts(ctx *gin.Context) {
-	pf := ctx.MustGet("pf").(*models.PagedQuery) // post filter
-	pq := ctx.MustGet("pq").(*models.PostFilter) // pagination query
+	pf := ctx.MustGet("pf").(*models.PostFilter) // post filter
+	pq := ctx.MustGet("pq").(*models.PagedQuery) // pagination query
 
-	posts, err := pc.ps.GetPosts(ctx.Request.Context(), pf, pq)
+	// TODO: get total count
+	posts, totalCount, err := pc.ps.GetPosts(ctx.Request.Context(), pq, pf)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	ctx.JSON(http.StatusOK, posts)
+	// form next and previous page pointers
+	var prevUri, nextUri any
+	if prev, ok := pc.us.GetPrevUri(ctx, pq.PageNum, pq.PageSize); !ok {
+		prevUri = nil
+	} else {
+		prevUri = prev
+	}
+	if next, ok := pc.us.GetNextUri(ctx, pq.PageNum, pq.PageSize, totalCount); !ok {
+		nextUri = nil
+	} else {
+		nextUri = next
+	}
+	ctx.JSON(http.StatusOK, gin.H{"data": posts, "prev": prevUri, "next": nextUri})
 }
 
 func (pc *PostController) GetPost(ctx *gin.Context) {
@@ -64,6 +78,7 @@ func (pc *PostController) CreatePost(ctx *gin.Context) {
 		Collections: cpr.Collections,
 		Tags:        cpr.Tags,
 		LastUpdated: currentDate,
+		Published:   currentDate,
 		Status:      db.Published.String(), // assuming anything that gets updated is to be published
 		Featured:    *cpr.Featured,
 	}

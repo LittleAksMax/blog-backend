@@ -52,11 +52,11 @@ func RouteIdValidate() gin.HandlerFunc {
 }
 
 func QueryValidate(ctx *gin.Context) {
-	pf := models.PagedQuery{
+	pq := models.PagedQuery{
 		PageNum:  models.DefaultPageNumber,
 		PageSize: models.DefaultPageSize,
 	}
-	pq := models.PostFilter{
+	pf := models.PostFilter{
 		Title:       nil,
 		Tags:        nil,
 		Collections: nil,
