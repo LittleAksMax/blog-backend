@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/LittleAksMax/blog-backend/internal/api"
+	"github.com/LittleAksMax/blog-backend/internal/cache"
 	"github.com/LittleAksMax/blog-backend/internal/config"
 	"github.com/LittleAksMax/blog-backend/internal/db"
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,7 @@ func main() {
 	if gin.Mode() == gin.DebugMode {
 		config.InitDotenv(".env.Dev")
 	} else if gin.Mode() == gin.ReleaseMode {
-		config.InitDotenv(".env")
+		// config.InitDotenv(".env")
 	} else {
 		log.Fatalf("Unsupported Gin Mode: %s", gin.Mode())
 	}
@@ -32,5 +33,8 @@ func main() {
 	dbCfg := db.InitDb(ctx, cfg.DbHost, cfg.DbPort, cfg.DbUser, cfg.DbPasswd, cfg.DbName)
 	defer dbCfg.CloseDb()
 
-	api.RunApi(cfg.ApiPort, dbCfg)
+	cacheCfg := cache.InitCache(ctx, cfg.CacheHost, cfg.CachePort, cfg.CachePasswd)
+	defer cacheCfg.CloseCache()
+
+	api.RunApi(cfg.ApiPort, cfg.ApiKey, dbCfg, cacheCfg)
 }

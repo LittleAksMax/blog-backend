@@ -1,4 +1,4 @@
-FROM golang:alpine as build
+FROM golang:alpine AS build
 WORKDIR /app
 
 COPY go.mod ./
@@ -8,7 +8,7 @@ RUN go mod download && go mod verify
 COPY . .
 RUN go build -v -o /app/bin/ ./...
 
-FROM alpine:latest as stage
+FROM alpine:latest AS stage
 
 EXPOSE 8080
 WORKDIR /app/

@@ -25,7 +25,6 @@ func (pc *PostController) GetPosts(ctx *gin.Context) {
 	pf := ctx.MustGet("pf").(*models.PostFilter) // post filter
 	pq := ctx.MustGet("pq").(*models.PagedQuery) // pagination query
 
-	// TODO: get total count
 	posts, totalCount, err := pc.ps.GetPosts(ctx.Request.Context(), pq, pf)
 
 	if err != nil {

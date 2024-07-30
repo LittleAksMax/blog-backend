@@ -1,16 +1,18 @@
 services:
-#  api:
-#    container_name: blogapi
-#    image: blogapi:devlatest
-#    depends_on:
-#      - blog_db
-#    ports:
-#      - "8080:8080"
-#    env_file:
-#      - .env.Dev
-#    build:
-#      context: .
-#      dockerfile: cmd/blog/Dockerfile
+  api:
+    container_name: blogapi
+    image: blogapi:devlatest
+    depends_on:
+      - blog_db
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.Dev
+    environment:
+      GIN_MODE: release
+    build:
+      context: .
+      dockerfile: cmd/blog/Dockerfile
   blog_db:
     container_name: blog_db
     hostname: blog_db
@@ -26,7 +28,8 @@ services:
     container_name: blog_cache
     hostname: blog_cache
     image: redis:alpine3.20
+    command: redis-server /usr/local/etc/redis/redis.conf
     volumes:
-      - "./redis/redis.conf:/etc/redis/redis.conf"
+      - "./redis/redis.conf:/usr/local/etc/redis/redis.conf"
     ports:
       - "6379:6379"

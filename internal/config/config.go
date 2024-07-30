@@ -9,22 +9,31 @@ import (
 
 // Keys used in environment file
 const (
-	apiPortKey    = "PORT"
-	dbHostnameKey = "MONGO_HOSTNAME"
-	dbPortKey     = "MONGO_PORT"
-	dbUserKey     = "MONGO_INITDB_ROOT_USERNAME"
-	dbPasswdKey   = "MONGO_INITDB_ROOT_PASSWORD"
-	dbNameKey     = "MONGO_DATABASE_NAME"
+	apiPortKey     = "PORT"
+	apiKeyKey      = "API_KEY"
+	dbHostnameKey  = "MONGO_HOSTNAME"
+	dbPortKey      = "MONGO_PORT"
+	dbUserKey      = "MONGO_INITDB_ROOT_USERNAME"
+	dbPasswdKey    = "MONGO_INITDB_ROOT_PASSWORD"
+	dbNameKey      = "MONGO_DATABASE_NAME"
+	cacheHostKey   = "REDIS_HOSTNAME"
+	cachePortKey   = "REDIS_PORT"
+	cachePasswdKey = "REDIS_PASSWORD"
 )
 
 type Config struct {
 	ApiPort int
+	ApiKey  string
 
 	DbHost   string
 	DbPort   int
 	DbUser   string
 	DbPasswd string
 	DbName   string
+
+	CacheHost   string
+	CachePort   int
+	CachePasswd string
 }
 
 func readPort(key string) int {
@@ -46,14 +55,20 @@ func InitDotenv(filenames ...string) {
 func InitConfig() *Config {
 	apiPort := readPort(apiPortKey)
 	dbPort := readPort(dbPortKey)
+	cachePort := readPort(cachePortKey)
 
 	return &Config{
 		ApiPort: apiPort,
+		ApiKey:  os.Getenv(apiKeyKey),
 
 		DbHost:   os.Getenv(dbHostnameKey),
 		DbPort:   dbPort,
 		DbUser:   os.Getenv(dbUserKey),
 		DbPasswd: os.Getenv(dbPasswdKey),
 		DbName:   os.Getenv(dbNameKey),
+
+		CacheHost:   os.Getenv(cacheHostKey),
+		CachePort:   cachePort,
+		CachePasswd: os.Getenv(cachePasswdKey),
 	}
 }
