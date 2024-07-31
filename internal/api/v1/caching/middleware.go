@@ -9,15 +9,12 @@ import (
 	"time"
 )
 
-func getRequestKey(r *http.Request) string {
-	// TODO: implement
-	return "key"
-}
+type RequestHashFunc func(*gin.Context) string
 
-func (cm *CacheManager) Cache(duration time.Duration) gin.HandlerFunc {
+func (cm *CacheManager) Cache(duration time.Duration, hasher RequestHashFunc) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// get request key for checking if stored in cache
-		key := getRequestKey(ctx.Request)
+		key := hasher(ctx)
 
 		cached, err := cm.rdb.Get(ctx.Request.Context(), key).Result()
 

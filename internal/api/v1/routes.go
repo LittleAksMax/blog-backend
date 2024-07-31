@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"github.com/LittleAksMax/blog-backend/internal/api/caching"
+	"github.com/LittleAksMax/blog-backend/internal/api/v1/caching"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/controllers"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/models"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/validators"
@@ -13,8 +13,8 @@ import (
 func addPostsRoutes(versionGroup *gin.RouterGroup, pc *controllers.PostController, cm *caching.CacheManager) {
 	postsGroup := versionGroup.Group("/posts")
 	{
-		postsGroup.GET("/", validators.QueryValidate, cm.Cache(time.Minute*1), pc.GetPosts)
-		postsGroup.GET("/:id", validators.RouteIdValidate(), cm.Cache(time.Minute*1), pc.GetPost)
+		postsGroup.GET("/", validators.QueryValidate, cm.Cache(time.Minute*1, caching.HashGetAllPosts), pc.GetPosts)
+		postsGroup.GET("/:id", validators.RouteIdValidate(), cm.Cache(time.Minute*1, caching.HashGetPost), pc.GetPost)
 		postsGroup.POST("/", validators.ReqValidate[*models.CreatePostRequest], pc.CreatePost)
 		postsGroup.PUT("/:id", validators.RouteIdValidate(), validators.ReqValidate[*models.UpdatePostRequest], pc.UpdatePost)
 		postsGroup.DELETE("/:id", validators.RouteIdValidate(), pc.DeletePost)
