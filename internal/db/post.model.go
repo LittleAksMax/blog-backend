@@ -1,10 +1,11 @@
 package db
 
 import (
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"regexp"
 	"strings"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type PostStatus uint8
@@ -45,7 +46,7 @@ func PostStatusFromString(s string) (PostStatus, bool) {
 }
 
 type Post struct {
-	Id          primitive.ObjectID `bson:"_id,omitempty"`
+	ID          primitive.ObjectID `bson:"_id,omitempty"`
 	Title       string             `bson:"title"`
 	Content     string             `bson:"content"`
 	Media       []string           `bson:"media"`

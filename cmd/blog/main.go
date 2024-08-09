@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/LittleAksMax/blog-backend/internal/api"
+	"github.com/LittleAksMax/blog-backend/internal/auth"
 	"github.com/LittleAksMax/blog-backend/internal/cache"
 	"github.com/LittleAksMax/blog-backend/internal/config"
 	"github.com/LittleAksMax/blog-backend/internal/db"
@@ -36,5 +37,7 @@ func main() {
 	cacheCfg := cache.InitCache(ctx, cfg.CacheHost, cfg.CachePort, cfg.CachePasswd)
 	defer cacheCfg.CloseCache()
 
-	api.RunApi(cfg.ApiPort, cfg.ApiKey, dbCfg, cacheCfg)
+	authCfg := auth.InitAuth(ctx, cfg.FirebaseProjectID, cfg.FirebaseCredentialFile)
+
+	api.RunApi(cfg.ApiPort, cfg.ApiKey, dbCfg, cacheCfg, authCfg)
 }

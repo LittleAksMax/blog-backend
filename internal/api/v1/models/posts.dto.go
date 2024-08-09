@@ -5,7 +5,7 @@ import (
 )
 
 type PostDto struct {
-	Id          string    `json:"_id"`
+	ID          string    `json:"_id"`
 	Title       string    `json:"title"`
 	Content     string    `json:"content"`
 	Media       []string  `json:"media"`

@@ -23,10 +23,14 @@ go.work.sum
 
 # Environment
 .env.Dev
+.env.Docker
+tokengen/firebaseconfig.json
 
 # Binaries
 bin/
+tokengen/node_modules/
 
 # Docker volumers
 mongodb/
 redis/
+appdata/

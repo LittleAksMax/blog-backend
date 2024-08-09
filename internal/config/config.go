@@ -9,21 +9,26 @@ import (
 
 // Keys used in environment file
 const (
-	apiPortKey     = "PORT"
-	apiKeyKey      = "API_KEY"
-	dbHostnameKey  = "MONGO_HOSTNAME"
-	dbPortKey      = "MONGO_PORT"
-	dbUserKey      = "MONGO_INITDB_ROOT_USERNAME"
-	dbPasswdKey    = "MONGO_INITDB_ROOT_PASSWORD"
-	dbNameKey      = "MONGO_DATABASE_NAME"
-	cacheHostKey   = "REDIS_HOSTNAME"
-	cachePortKey   = "REDIS_PORT"
-	cachePasswdKey = "REDIS_PASSWORD"
+	apiPortKey                = "PORT"
+	apiKeyKey                 = "API_KEY"
+	firebaseProjectIdKey      = "FIREBASE_PROJECT_ID"
+	firebaseCredentialFileKey = "FIREBASE_CREDENTIAL_FILE"
+	dbHostnameKey             = "MONGO_HOSTNAME"
+	dbPortKey                 = "MONGO_PORT"
+	dbUserKey                 = "MONGO_INITDB_ROOT_USERNAME"
+	dbPasswdKey               = "MONGO_INITDB_ROOT_PASSWORD"
+	dbNameKey                 = "MONGO_DATABASE_NAME"
+	cacheHostKey              = "REDIS_HOSTNAME"
+	cachePortKey              = "REDIS_PORT"
+	cachePasswdKey            = "REDIS_PASSWORD"
 )
 
 type Config struct {
 	ApiPort int
 	ApiKey  string
+
+	FirebaseProjectID      string
+	FirebaseCredentialFile string
 
 	DbHost   string
 	DbPort   int
@@ -60,6 +65,9 @@ func InitConfig() *Config {
 	return &Config{
 		ApiPort: apiPort,
 		ApiKey:  os.Getenv(apiKeyKey),
+
+		FirebaseProjectID:      os.Getenv(firebaseProjectIdKey),
+		FirebaseCredentialFile: os.Getenv(firebaseCredentialFileKey),
 
 		DbHost:   os.Getenv(dbHostnameKey),
 		DbPort:   dbPort,

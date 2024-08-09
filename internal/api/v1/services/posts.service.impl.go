@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/models"
 	"github.com/LittleAksMax/blog-backend/internal/db"
 	"go.mongodb.org/mongo-driver/bson"
@@ -52,7 +53,7 @@ func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, 
 			return nil, 0, err
 		}
 		dtos[cursor.RemainingBatchLength()] = models.PostDto{
-			Id:          post.Id.Hex(),
+			ID:          post.ID.Hex(),
 			Title:       post.Title,
 			Content:     post.Content,
 			Media:       post.Media,
@@ -81,7 +82,7 @@ func (ps *PostServiceImpl) GetPost(ctx context.Context, id primitive.ObjectID) (
 	}
 
 	return &models.PostDto{
-		Id:          post.Id.Hex(),
+		ID:          post.ID.Hex(),
 		Title:       post.Title,
 		Content:     post.Content,
 		Media:       post.Media,
@@ -103,7 +104,7 @@ func (ps *PostServiceImpl) CreatePost(ctx context.Context, dto *models.PostDto) 
 	}
 
 	post := db.Post{
-		Id:          primitive.NewObjectID(),
+		ID:          primitive.NewObjectID(),
 		Title:       dto.Title,
 		Content:     dto.Content,
 		Media:       dto.Media,
@@ -121,7 +122,7 @@ func (ps *PostServiceImpl) CreatePost(ctx context.Context, dto *models.PostDto) 
 	}
 
 	// set id for dto
-	dto.Id = res.InsertedID.(primitive.ObjectID).Hex()
+	dto.ID = res.InsertedID.(primitive.ObjectID).Hex()
 
 	return nil
 }
@@ -135,7 +136,7 @@ func (ps *PostServiceImpl) UpdatePost(ctx context.Context, id primitive.ObjectID
 	}
 
 	post := db.Post{
-		Id:          id,
+		ID:          id,
 		Title:       dto.Title,
 		Content:     dto.Content,
 		Media:       dto.Media,
@@ -158,7 +159,7 @@ func (ps *PostServiceImpl) UpdatePost(ctx context.Context, id primitive.ObjectID
 	}
 
 	// ensure correctly set DTO value for ID
-	dto.Id = id.Hex()
+	dto.ID = id.Hex()
 
 	return nil
 }

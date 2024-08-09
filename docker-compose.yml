@@ -7,7 +7,9 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - .env.Dev
+      - .env.Docker
+    volumes:
+      - "./appdata/blog-868a1-credentials.json:/app/blog-868a1-credentials.json"
     environment:
       GIN_MODE: release
     build:

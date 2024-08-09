@@ -2,33 +2,32 @@ package api
 
 import (
 	"fmt"
-	"github.com/LittleAksMax/blog-backend/internal/api/auth"
 	"github.com/LittleAksMax/blog-backend/internal/api/health"
 	v1 "github.com/LittleAksMax/blog-backend/internal/api/v1"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/controllers"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/services"
+	fbAuth "github.com/LittleAksMax/blog-backend/internal/auth"
 	"github.com/LittleAksMax/blog-backend/internal/cache"
 	"github.com/LittleAksMax/blog-backend/internal/db"
 	"github.com/gin-gonic/gin"
 )
 
-func RunApi(port int, apiKey string, dbCfg *db.Config, cacheCfg *cache.Config) {
+func RunApi(port int, apiKey string, dbCfg *db.Config, cacheCfg *cache.Config, authCfg *fbAuth.Config) {
 	r := gin.Default()
-	r.Use(auth.RequiresAPIKey(apiKey))
 
 	// create all relevant controllers and services for API
 	pc, hc := createControllers(dbCfg, cacheCfg)
-	
+
 	// configure manual health checks
 	healthGroup := r.Group("/")
 	{
-		health.AttachHealthChecks(healthGroup, hc)
+		health.AttachHealthChecks(healthGroup, hc, apiKey)
 	}
 
 	// configure routes using controllers
 	apiGroup := r.Group("/api")
 	{
-		v1.AttachVersion(apiGroup, pc, cacheCfg)
+		v1.AttachVersion(apiGroup, pc, apiKey, cacheCfg, authCfg)
 	}
 
 	addr := fmt.Sprintf(":%d", port)
