@@ -5,6 +5,7 @@ import (
 	"github.com/LittleAksMax/blog-backend/internal/api/health"
 	v1 "github.com/LittleAksMax/blog-backend/internal/api/v1"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/controllers"
+	"github.com/LittleAksMax/blog-backend/internal/api/v1/cors"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/services"
 	fbAuth "github.com/LittleAksMax/blog-backend/internal/auth"
 	"github.com/LittleAksMax/blog-backend/internal/cache"
@@ -12,8 +13,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RunApi(port int, apiKey string, dbCfg *db.Config, cacheCfg *cache.Config, authCfg *fbAuth.Config) {
+func RunApi(port int, apiKey string, corsAllowedOrigins []string, dbCfg *db.Config, cacheCfg *cache.Config, authCfg *fbAuth.Config) {
 	r := gin.Default()
+
+	// attach CORS policy to engine
+	cors.AttachCORS(r, corsAllowedOrigins)
 
 	// create all relevant controllers and services for API
 	pc, hc := createControllers(dbCfg, cacheCfg)

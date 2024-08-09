@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Keys used in environment file
@@ -21,6 +22,7 @@ const (
 	cacheHostKey              = "REDIS_HOSTNAME"
 	cachePortKey              = "REDIS_PORT"
 	cachePasswdKey            = "REDIS_PASSWORD"
+	corsAllowedOriginsKey     = "CORS_ALLOWED_ORIGINS"
 )
 
 type Config struct {
@@ -39,6 +41,8 @@ type Config struct {
 	CacheHost   string
 	CachePort   int
 	CachePasswd string
+
+	CorsAllowedOrigins []string
 }
 
 func readPort(key string) int {
@@ -48,6 +52,10 @@ func readPort(key string) int {
 		log.Fatalf("Error converting environment variable <%s> to int between 1024 and 65353", key)
 	}
 	return port
+}
+
+func readList(value string) []string {
+	return strings.Split(value, ",")
 }
 
 func InitDotenv(filenames ...string) {
@@ -78,5 +86,7 @@ func InitConfig() *Config {
 		CacheHost:   os.Getenv(cacheHostKey),
 		CachePort:   cachePort,
 		CachePasswd: os.Getenv(cachePasswdKey),
+
+		CorsAllowedOrigins: readList(os.Getenv(corsAllowedOriginsKey)),
 	}
 }
