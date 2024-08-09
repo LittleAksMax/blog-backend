@@ -1,0 +1,15 @@
+{
+  "type": "module",
+  "name": "tokengen",
+  "version": "1.0.0",
+  "description": "Basic CLI app to generate id tokens for firebase",
+  "main": "index.js",
+  "author": "David Rosental david2005.rosental.work@gmail.com",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "firebase": "^10.12.5"
+  }
+}
