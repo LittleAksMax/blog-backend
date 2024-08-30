@@ -69,7 +69,7 @@ func InitConfig() *Config {
 	apiPort := readPort(apiPortKey)
 	dbPort := readPort(dbPortKey)
 	cachePort := readPort(cachePortKey)
-
+	
 	return &Config{
 		ApiPort: apiPort,
 		ApiKey:  os.Getenv(apiKeyKey),

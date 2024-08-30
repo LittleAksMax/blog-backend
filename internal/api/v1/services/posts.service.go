@@ -8,7 +8,8 @@ import (
 
 type PostService interface {
 	GetPosts(ctx context.Context, pq *models.PagedQuery, pf *models.PostFilter) ([]models.PostDto, int, error)
-	GetPost(ctx context.Context, id primitive.ObjectID) (*models.PostDto, error)
+	GetPostById(ctx context.Context, id primitive.ObjectID) (*models.PostDto, error)
+	GetPostBySlug(ctx context.Context, slug string) (*models.PostDto, error)
 	CreatePost(ctx context.Context, dto *models.PostDto) error
 	UpdatePost(ctx context.Context, id primitive.ObjectID, dto *models.PostDto) error
 	DeletePost(ctx context.Context, id primitive.ObjectID) error

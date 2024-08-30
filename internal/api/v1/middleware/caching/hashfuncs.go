@@ -99,7 +99,13 @@ func HashGetAllPosts(ctx *gin.Context) string {
 
 func HashGetPost(ctx *gin.Context) string {
 	// NOTE: must be run after handler is run
-	id := ctx.MustGet("id").(primitive.ObjectID)
+	idUsed := ctx.MustGet("idOrSlug").(bool)
 
-	return "getPost-" + id.Hex()
+	if idUsed {
+		id := ctx.MustGet("id").(primitive.ObjectID)
+		return "getPost-id-" + id.Hex()
+	} else {
+		slug := ctx.MustGet("slug").(string)
+		return "getPost-slug-" + slug
+	}
 }

@@ -47,9 +47,17 @@ func (pc *PostController) GetPosts(ctx *gin.Context) {
 }
 
 func (pc *PostController) GetPost(ctx *gin.Context) {
-	id := ctx.MustGet("id").(primitive.ObjectID)
+	idUsed := ctx.MustGet("idOrSlug").(bool)
 
-	post, err := pc.ps.GetPost(ctx, id)
+	var post *models.PostDto
+	var err error
+	if idUsed {
+		id := ctx.MustGet("id").(primitive.ObjectID)
+		post, err = pc.ps.GetPostById(ctx.Request.Context(), id)
+	} else {
+		slug := ctx.MustGet("slug").(string)
+		post, err = pc.ps.GetPostBySlug(ctx.Request.Context(), slug)
+	}
 
 	if err != nil {
 		var nfErr services.NotFoundErr
@@ -72,6 +80,7 @@ func (pc *PostController) CreatePost(ctx *gin.Context) {
 	// add to mongo
 	dto := models.PostDto{
 		Title:       cpr.Title,
+		Slug:        models.GenerateSlug(cpr.Title),
 		Content:     cpr.Content,
 		Media:       pc.cps.GetMediaLinks(cpr.Content),
 		Collections: cpr.Collections,
@@ -102,6 +111,7 @@ func (pc *PostController) UpdatePost(ctx *gin.Context) {
 	// add to mongo
 	dto := models.PostDto{
 		Title:       upr.Title,
+		Slug:        models.GenerateSlug(upr.Title),
 		Content:     upr.Content,
 		Media:       pc.cps.GetMediaLinks(upr.Content),
 		Collections: upr.Collections,

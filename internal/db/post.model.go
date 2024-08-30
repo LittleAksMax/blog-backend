@@ -1,8 +1,6 @@
 package db
 
 import (
-	"regexp"
-	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -48,6 +46,7 @@ func PostStatusFromString(s string) (PostStatus, bool) {
 type Post struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
 	Title       string             `bson:"title"`
+	Slug        string             `bson:"slug"`
 	Content     string             `bson:"content"`
 	Media       []string           `bson:"media"`
 	Collections []string           `bson:"collections"`
@@ -56,27 +55,4 @@ type Post struct {
 	LastUpdated time.Time          `bson:"last_updated"`
 	Status      PostStatus         `bson:"status"`
 	Featured    bool               `bson:"featured"`
-}
-
-func (p *Post) Slug() string {
-	// Convert the title to lowercase
-	slug := strings.ToLower(p.Title)
-
-	// Replace spaces with dashes
-	slug = strings.ReplaceAll(slug, " ", "-")
-
-	// Remove special characters using a regular expression
-	slug = removeSpecialCharacters(slug)
-
-	// Trim leading and trailing dashes
-	slug = strings.Trim(slug, "-")
-
-	return slug
-}
-
-// Helper function to remove special characters
-func removeSpecialCharacters(s string) string {
-	// Define a regular expression to match non-alphanumeric characters except for dashes
-	re := regexp.MustCompile(`[^\w-]+`)
-	return re.ReplaceAllString(s, "")
 }

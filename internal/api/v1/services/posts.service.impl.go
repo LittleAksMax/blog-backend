@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"github.com/LittleAksMax/blog-backend/internal/api/v1/mappers"
 
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/models"
 	"github.com/LittleAksMax/blog-backend/internal/db"
@@ -52,18 +53,7 @@ func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, 
 		if err != nil {
 			return nil, 0, err
 		}
-		dtos[cursor.RemainingBatchLength()] = models.PostDto{
-			ID:          post.ID.Hex(),
-			Title:       post.Title,
-			Content:     post.Content,
-			Media:       post.Media,
-			Collections: post.Collections,
-			Tags:        post.Tags,
-			Published:   post.Published,
-			LastUpdated: post.LastUpdated,
-			Status:      post.Status.String(),
-			Featured:    post.Featured,
-		}
+		dtos[cursor.RemainingBatchLength()] = mappers.ToDto(&post)
 	}
 
 	if err := cursor.Err(); err != nil {
@@ -73,7 +63,7 @@ func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, 
 	return dtos, int(totalCount), nil
 }
 
-func (ps *PostServiceImpl) GetPost(ctx context.Context, id primitive.ObjectID) (*models.PostDto, error) {
+func (ps *PostServiceImpl) GetPostById(ctx context.Context, id primitive.ObjectID) (*models.PostDto, error) {
 	var post db.Post
 	err := ps.posts.FindOne(ctx, bson.D{{"_id", id}}).Decode(&post)
 
@@ -81,18 +71,20 @@ func (ps *PostServiceImpl) GetPost(ctx context.Context, id primitive.ObjectID) (
 		return nil, &NotFoundErr{id: id}
 	}
 
-	return &models.PostDto{
-		ID:          post.ID.Hex(),
-		Title:       post.Title,
-		Content:     post.Content,
-		Media:       post.Media,
-		Collections: post.Collections,
-		Tags:        post.Tags,
-		Status:      post.Status.String(),
-		Published:   post.Published,
-		LastUpdated: post.LastUpdated,
-		Featured:    post.Featured,
-	}, nil
+	postDto := mappers.ToDto(&post)
+	return &postDto, nil
+}
+
+func (ps *PostServiceImpl) GetPostBySlug(ctx context.Context, slug string) (*models.PostDto, error) {
+	var post db.Post
+	err := ps.posts.FindOne(ctx, bson.D{{"slug", slug}}).Decode(&post)
+
+	if err != nil {
+		return nil, &SlugNotFoundErr{slug: slug}
+	}
+
+	postDto := mappers.ToDto(&post)
+	return &postDto, nil
 }
 
 func (ps *PostServiceImpl) CreatePost(ctx context.Context, dto *models.PostDto) error {
@@ -103,18 +95,7 @@ func (ps *PostServiceImpl) CreatePost(ctx context.Context, dto *models.PostDto) 
 		panic("invalid post status")
 	}
 
-	post := db.Post{
-		ID:          primitive.NewObjectID(),
-		Title:       dto.Title,
-		Content:     dto.Content,
-		Media:       dto.Media,
-		Collections: dto.Collections,
-		Tags:        dto.Tags,
-		Status:      postStatus,
-		Published:   dto.Published,
-		LastUpdated: dto.LastUpdated,
-		Featured:    dto.Featured,
-	}
+	post := mappers.ToDom(primitive.NewObjectID(), postStatus, dto)
 	res, err := ps.posts.InsertOne(ctx, post)
 
 	if err != nil {
@@ -135,18 +116,7 @@ func (ps *PostServiceImpl) UpdatePost(ctx context.Context, id primitive.ObjectID
 		panic("invalid post status field")
 	}
 
-	post := db.Post{
-		ID:          id,
-		Title:       dto.Title,
-		Content:     dto.Content,
-		Media:       dto.Media,
-		Collections: dto.Collections,
-		Tags:        dto.Tags,
-		Status:      postStatus,
-		Published:   dto.Published,
-		LastUpdated: dto.LastUpdated,
-		Featured:    dto.Featured,
-	}
+	post := mappers.ToDom(id, postStatus, dto)
 	res, err := ps.posts.ReplaceOne(ctx, primitive.D{{"_id", id}}, post)
 
 	if err != nil {

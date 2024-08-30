@@ -1,4 +1,4 @@
-package validators
+package middleware
 
 import (
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/models"
@@ -49,6 +49,28 @@ func RouteIdParamValidateWithParam(idParamName string) gin.HandlerFunc {
 
 func RouteIdValidate() gin.HandlerFunc {
 	return RouteIdParamValidateWithParam("id")
+}
+
+func RouteIdOrSlugValidateWithParamName(idOrSlugParamName string) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		idOrSlug := ctx.Param(idOrSlugParamName)
+		id, err := primitive.ObjectIDFromHex(idOrSlug)
+
+		// set the slug if what we got is not a valid ID, otherwise set the id
+		if err != nil {
+			ctx.Set("idOrSlug", false) // we should use the slug
+			ctx.Set("slug", idOrSlug)
+		} else {
+			ctx.Set("idOrSlug", true) // we should use the ID
+			ctx.Set("id", id)
+		}
+
+		ctx.Next()
+	}
+}
+
+func RouteIdOrSlugValidate() gin.HandlerFunc {
+	return RouteIdOrSlugValidateWithParamName("idOrSlug")
 }
 
 func QueryValidate(ctx *gin.Context) {
