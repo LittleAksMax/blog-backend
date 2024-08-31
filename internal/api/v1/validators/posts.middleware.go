@@ -1,4 +1,4 @@
-package middleware
+package validators
 
 import (
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/models"
