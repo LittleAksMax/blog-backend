@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
+	"log"
 	"net/http"
 	"time"
 )
@@ -43,6 +44,18 @@ func (cm *CacheManager) Cache(duration time.Duration, hasher RequestHashFunc) gi
 
 		// store created status
 		contents := writer.body.String()
-		cm.rdb.Set(ctx.Request.Context(), key, contents, duration)
+		err = cm.rdb.Set(ctx.Request.Context(), key, contents, duration).Err()
+		if err != nil {
+			log.Println("Cache failed: " + err.Error())
+		}
+	}
+}
+
+func (cm *CacheManager) InvalidateCache() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		ctx.Next()
+		cm.rdb.Del(ctx.Request.Context())
+		// TODO: figure out adding caches with a tag
+		// TODO: evict cached by tag
 	}
 }

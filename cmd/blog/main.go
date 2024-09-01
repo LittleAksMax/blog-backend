@@ -39,5 +39,5 @@ func main() {
 
 	authCfg := auth.InitAuth(ctx, cfg.FirebaseProjectID, cfg.FirebaseCredentialFile)
 
-	api.RunApi(cfg.ApiPort, cfg.ApiKey, cfg.CorsAllowedOrigins, dbCfg, cacheCfg, authCfg)
+	api.RunApi(cfg.ApiPort, cfg.CorsAllowedOrigins, dbCfg, cacheCfg, authCfg)
 }

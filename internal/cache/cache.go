@@ -23,7 +23,7 @@ func InitCache(ctx context.Context, host string, port int, password string) *Con
 		panic(err)
 	}
 	log.Println("Pinged your deployment. You successfully connected to Redis!")
-
+	
 	return &Config{
 		Client: rdb,
 	}

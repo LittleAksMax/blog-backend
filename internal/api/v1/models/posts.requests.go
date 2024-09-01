@@ -30,5 +30,6 @@ type UpdatePostRequest struct {
 	Content     string   `binding:"required" json:"content"`
 	Collections []string `binding:"required" json:"collections"`
 	Tags        []string `binding:"required" json:"tags"`
+	Status      string   `binding:"required" json:"status"`
 	Featured    *bool    `binding:"required" json:"featured"`
 }

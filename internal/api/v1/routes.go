@@ -14,24 +14,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func addPostsRoutes(versionGroup *gin.RouterGroup, pc *controllers.PostController, cm *caching.CacheManager, authClient *auth.Client, apiKey string) {
+func addPostsRoutes(versionGroup *gin.RouterGroup, pc *controllers.PostController, cm *caching.CacheManager, authClient *auth.Client) {
 	postsGroup := versionGroup.Group("/posts")
 	{
-		postsGroup.GET("/", authMiddleware.RequiresAPIKey(apiKey), validators.QueryValidate, cm.Cache(time.Minute*1, caching.HashGetAllPosts), pc.GetPosts)
-		postsGroup.GET("/:idOrSlug", authMiddleware.RequiresAPIKey(apiKey), validators.RouteIdOrSlugValidate(), cm.Cache(time.Minute*1, caching.HashGetPost), pc.GetPost)
-		postsGroup.POST("/", authMiddleware.RequiresToken(authClient), authMiddleware.RequiresAdmin, validators.ReqValidate[*models.CreatePostRequest], pc.CreatePost)
-		postsGroup.PUT("/:id", authMiddleware.RequiresToken(authClient), authMiddleware.RequiresAdmin, validators.RouteIdValidate(), validators.ReqValidate[*models.UpdatePostRequest], pc.UpdatePost)
-		postsGroup.DELETE("/:id", authMiddleware.RequiresToken(authClient), authMiddleware.RequiresAdmin, validators.RouteIdValidate(), pc.DeletePost)
+		postsGroup.GET("/", authMiddleware.ReadToken(authClient), authMiddleware.ReadAdmin, validators.QueryValidate, cm.Cache(time.Minute*5, caching.HashGetAllPosts), pc.GetPosts)
+		postsGroup.GET("/:idOrSlug", authMiddleware.ReadToken(authClient), authMiddleware.ReadAdmin, validators.RouteIdOrSlugValidate(), cm.Cache(time.Minute*5, caching.HashGetPost), pc.GetPost)
+		postsGroup.POST("/", authMiddleware.ReadToken(authClient), authMiddleware.ReadAdmin, authMiddleware.RequiresAdmin, validators.ReqValidate[*models.CreatePostRequest], pc.CreatePost)
+		postsGroup.PUT("/:id", authMiddleware.ReadToken(authClient), authMiddleware.ReadAdmin, authMiddleware.RequiresAdmin, validators.RouteIdValidate(), validators.ReqValidate[*models.UpdatePostRequest], validators.UpdateReqValidate, pc.UpdatePost)
+		postsGroup.DELETE("/:id", authMiddleware.ReadToken(authClient), authMiddleware.ReadAdmin, authMiddleware.RequiresAdmin, validators.RouteIdValidate(), pc.DeletePost)
 	}
 }
 
-func AttachVersion(api *gin.RouterGroup, pc *controllers.PostController, apiKey string, cacheCfg *cache.Config, authCfg *fbAuth.Config) {
+func AttachVersion(api *gin.RouterGroup, pc *controllers.PostController, cacheCfg *cache.Config, authCfg *fbAuth.Config) {
 	// create the cache manager used
 	cm := caching.NewCacheManager(cacheCfg)
 	authClient := authCfg.AuthClient
 
 	versionGroup := api.Group("/v1")
 	{
-		addPostsRoutes(versionGroup, pc, cm, authClient, apiKey)
+		addPostsRoutes(versionGroup, pc, cm, authClient)
 	}
 }

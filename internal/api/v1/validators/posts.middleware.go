@@ -2,9 +2,15 @@ package validators
 
 import (
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/models"
+	"github.com/LittleAksMax/blog-backend/internal/db"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
+)
+
+const (
+	RequestKey  = "request"
+	IdOrSlugKey = "idOrSlug"
 )
 
 func ReqValidate[T any](ctx *gin.Context) {
@@ -26,7 +32,19 @@ func ReqValidate[T any](ctx *gin.Context) {
 	}
 
 	// add to context and call next
-	ctx.Set("request", req)
+	ctx.Set(RequestKey, req)
+	ctx.Next()
+}
+
+func UpdateReqValidate(ctx *gin.Context) {
+	upr := ctx.MustGet(RequestKey).(*models.UpdatePostRequest)
+
+	_, ok := db.PostStatusFromString(upr.Status)
+	if !ok {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": upr.Status + " is not a valid post status."})
+		return
+	}
+
 	ctx.Next()
 }
 
@@ -58,10 +76,10 @@ func RouteIdOrSlugValidateWithParamName(idOrSlugParamName string) gin.HandlerFun
 
 		// set the slug if what we got is not a valid ID, otherwise set the id
 		if err != nil {
-			ctx.Set("idOrSlug", false) // we should use the slug
+			ctx.Set(IdOrSlugKey, false) // we should use the slug
 			ctx.Set("slug", idOrSlug)
 		} else {
-			ctx.Set("idOrSlug", true) // we should use the ID
+			ctx.Set(IdOrSlugKey, true) // we should use the ID
 			ctx.Set("id", id)
 		}
 

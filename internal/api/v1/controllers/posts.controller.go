@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/models"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/services"
+	"github.com/LittleAksMax/blog-backend/internal/api/v1/validators"
 	"github.com/LittleAksMax/blog-backend/internal/db"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -47,7 +48,7 @@ func (pc *PostController) GetPosts(ctx *gin.Context) {
 }
 
 func (pc *PostController) GetPost(ctx *gin.Context) {
-	idUsed := ctx.MustGet("idOrSlug").(bool)
+	idUsed := ctx.MustGet(validators.IdOrSlugKey).(bool)
 
 	var post *models.PostDto
 	var err error
@@ -74,7 +75,7 @@ func (pc *PostController) GetPost(ctx *gin.Context) {
 }
 
 func (pc *PostController) CreatePost(ctx *gin.Context) {
-	cpr := ctx.MustGet("request").(*models.CreatePostRequest)
+	cpr := ctx.MustGet(validators.RequestKey).(*models.CreatePostRequest)
 
 	currentDate := time.Now()
 	// add to mongo
@@ -105,10 +106,17 @@ func (pc *PostController) CreatePost(ctx *gin.Context) {
 
 func (pc *PostController) UpdatePost(ctx *gin.Context) {
 	id := ctx.MustGet("id").(primitive.ObjectID)
-	upr := ctx.MustGet("request").(*models.UpdatePostRequest)
+	upr := ctx.MustGet(validators.RequestKey).(*models.UpdatePostRequest)
 
-	currentDate := time.Now()
+	// fetch old equivalent (if it exists) to set the published date
+	oldDto, err := pc.ps.GetPostById(ctx.Request.Context(), id)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
 	// add to mongo
+	currentDate := time.Now()
 	dto := models.PostDto{
 		Title:       upr.Title,
 		Slug:        models.GenerateSlug(upr.Title),
@@ -116,13 +124,13 @@ func (pc *PostController) UpdatePost(ctx *gin.Context) {
 		Media:       pc.cps.GetMediaLinks(upr.Content),
 		Collections: upr.Collections,
 		Tags:        upr.Tags,
-		Published:   currentDate,
+		Published:   oldDto.Published,
 		LastUpdated: currentDate,
-		Status:      db.Published.String(),
+		Status:      upr.Status,
 		Featured:    *upr.Featured,
 	}
 
-	err := pc.ps.UpdatePost(ctx.Request.Context(), id, &dto)
+	err = pc.ps.UpdatePost(ctx.Request.Context(), id, &dto)
 
 	if err != nil {
 		var nfErr services.NotFoundErr
@@ -136,7 +144,7 @@ func (pc *PostController) UpdatePost(ctx *gin.Context) {
 	}
 
 	// The work completed without cancellation
-	ctx.JSON(http.StatusOK, dto)
+	ctx.Status(http.StatusOK)
 }
 
 func (pc *PostController) DeletePost(ctx *gin.Context) {

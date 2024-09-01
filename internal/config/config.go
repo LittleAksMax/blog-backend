@@ -11,7 +11,6 @@ import (
 // Keys used in environment file
 const (
 	apiPortKey                = "PORT"
-	apiKeyKey                 = "API_KEY"
 	firebaseProjectIdKey      = "FIREBASE_PROJECT_ID"
 	firebaseCredentialFileKey = "FIREBASE_CREDENTIAL_FILE"
 	dbHostnameKey             = "MONGO_HOSTNAME"
@@ -27,7 +26,6 @@ const (
 
 type Config struct {
 	ApiPort int
-	ApiKey  string
 
 	FirebaseProjectID      string
 	FirebaseCredentialFile string
@@ -69,10 +67,9 @@ func InitConfig() *Config {
 	apiPort := readPort(apiPortKey)
 	dbPort := readPort(dbPortKey)
 	cachePort := readPort(cachePortKey)
-	
+
 	return &Config{
 		ApiPort: apiPort,
-		ApiKey:  os.Getenv(apiKeyKey),
 
 		FirebaseProjectID:      os.Getenv(firebaseProjectIdKey),
 		FirebaseCredentialFile: os.Getenv(firebaseCredentialFileKey),

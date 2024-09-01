@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RunApi(port int, apiKey string, corsAllowedOrigins []string, dbCfg *db.Config, cacheCfg *cache.Config, authCfg *fbAuth.Config) {
+func RunApi(port int, corsAllowedOrigins []string, dbCfg *db.Config, cacheCfg *cache.Config, authCfg *fbAuth.Config) {
 	r := gin.Default()
 
 	// attach CORS policy to engine
@@ -25,13 +25,13 @@ func RunApi(port int, apiKey string, corsAllowedOrigins []string, dbCfg *db.Conf
 	// configure manual health checks
 	healthGroup := r.Group("/")
 	{
-		health.AttachHealthChecks(healthGroup, hc, apiKey)
+		health.AttachHealthChecks(healthGroup, hc)
 	}
 
 	// configure routes using controllers
 	apiGroup := r.Group("/api")
 	{
-		v1.AttachVersion(apiGroup, pc, apiKey, cacheCfg, authCfg)
+		v1.AttachVersion(apiGroup, pc, cacheCfg, authCfg)
 	}
 
 	addr := fmt.Sprintf(":%d", port)
