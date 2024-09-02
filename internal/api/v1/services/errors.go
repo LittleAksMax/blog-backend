@@ -8,21 +8,20 @@ type NotFoundErr struct {
 	id primitive.ObjectID
 }
 
-type SlugNotFoundErr struct {
-	NotFoundErr
-	slug string
-}
-
 func (e NotFoundErr) Id() primitive.ObjectID {
 	return e.id
 }
 
-func (e SlugNotFoundErr) Slug() string {
-	return e.slug
-}
-
 func (e NotFoundErr) Error() string {
 	return "not found with id: " + e.id.Hex()
+}
+
+type SlugNotFoundErr struct {
+	slug string
+}
+
+func (e SlugNotFoundErr) Slug() string {
+	return e.slug
 }
 
 func (e SlugNotFoundErr) Error() string {
@@ -33,6 +32,6 @@ type ConflictErr struct {
 	msg string
 }
 
-func (err ConflictErr) Error() string {
-	return err.msg
+func (e ConflictErr) Error() string {
+	return e.msg
 }

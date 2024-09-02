@@ -9,35 +9,29 @@ import (
 type PostStatus uint8
 
 const (
-	Draft PostStatus = iota
+	None PostStatus = iota
 	Published
 	Archived
-	Removed
 )
 
 const (
-	draftString     = "Draft"
+	noneString      = "None"
 	publishedString = "Published"
 	archivedString  = "Archived"
-	removedString   = "Removed"
 )
 
-var postStatusStrings [4]string = [...]string{"Draft", "Published", "Archived", "Removed"}
+var postStatusStrings [2]string = [...]string{"Published", "Archived"}
 
 func (ps PostStatus) String() string {
-	return postStatusStrings[ps]
+	return postStatusStrings[ps-1]
 }
 
 func PostStatusFromString(s string) (PostStatus, bool) {
 	switch s {
-	case draftString:
-		return Draft, true
 	case publishedString:
 		return Published, true
 	case archivedString:
 		return Archived, true
-	case removedString:
-		return Removed, true
 	default:
 		return 255, false
 	}

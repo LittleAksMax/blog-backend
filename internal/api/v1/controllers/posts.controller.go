@@ -25,8 +25,9 @@ func NewPostController(ps services.PostService, cps services.ContentParserServic
 func (pc *PostController) GetPosts(ctx *gin.Context) {
 	pf := ctx.MustGet("pf").(*models.PostFilter) // post filter
 	pq := ctx.MustGet("pq").(*models.PagedQuery) // pagination query
+	admin := ctx.MustGet("admin").(bool)
 
-	posts, totalCount, err := pc.ps.GetPosts(ctx.Request.Context(), pq, pf)
+	posts, totalCount, err := pc.ps.GetPosts(ctx.Request.Context(), pq, pf, admin)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -49,20 +50,22 @@ func (pc *PostController) GetPosts(ctx *gin.Context) {
 
 func (pc *PostController) GetPost(ctx *gin.Context) {
 	idUsed := ctx.MustGet(validators.IdOrSlugKey).(bool)
+	admin := ctx.MustGet("admin").(bool)
 
 	var post *models.PostDto
 	var err error
 	if idUsed {
 		id := ctx.MustGet("id").(primitive.ObjectID)
-		post, err = pc.ps.GetPostById(ctx.Request.Context(), id)
+		post, err = pc.ps.GetPostById(ctx.Request.Context(), id, admin)
 	} else {
 		slug := ctx.MustGet("slug").(string)
-		post, err = pc.ps.GetPostBySlug(ctx.Request.Context(), slug)
+		post, err = pc.ps.GetPostBySlug(ctx.Request.Context(), slug, admin)
 	}
 
 	if err != nil {
-		var nfErr services.NotFoundErr
-		if errors.Is(err, &nfErr) {
+		//var nfErr services.NotFoundErr
+		//var snfErr services.SlugNotFoundErr
+		if errors.Is(err, &services.NotFoundErr{}) || errors.Is(err, &services.SlugNotFoundErr{}) {
 			// changes are the object was not found in the database
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		} else {
@@ -95,8 +98,12 @@ func (pc *PostController) CreatePost(ctx *gin.Context) {
 	err := pc.ps.CreatePost(ctx.Request.Context(), &dto)
 
 	if err != nil {
-		// chances are that caught error is a conflict error
-		ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		var cfErr services.ConflictErr
+		if errors.As(err, &cfErr) {
+			ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
 		return
 	}
 
@@ -108,8 +115,12 @@ func (pc *PostController) UpdatePost(ctx *gin.Context) {
 	id := ctx.MustGet("id").(primitive.ObjectID)
 	upr := ctx.MustGet(validators.RequestKey).(*models.UpdatePostRequest)
 
+	// NOTE: technically, to be in this controller, one must already be an admin
+	//       because of the middleware, but this is just for clarity
+	admin := ctx.MustGet("admin").(bool)
+
 	// fetch old equivalent (if it exists) to set the published date
-	oldDto, err := pc.ps.GetPostById(ctx.Request.Context(), id)
+	oldDto, err := pc.ps.GetPostById(ctx.Request.Context(), id, admin)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -134,11 +145,14 @@ func (pc *PostController) UpdatePost(ctx *gin.Context) {
 
 	if err != nil {
 		var nfErr services.NotFoundErr
-		if errors.Is(err, &nfErr) {
+		var cfErr services.ConflictErr
+		if errors.As(err, &nfErr) {
 			// changes are the object was not found in the database
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
-		} else {
+		} else if errors.As(err, &cfErr) {
 			ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		}
 		return
 	}

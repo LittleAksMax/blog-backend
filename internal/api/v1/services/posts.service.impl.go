@@ -22,8 +22,13 @@ func NewPostServiceImpl(dbCfg *db.Config) *PostServiceImpl {
 	}
 }
 
-func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, pf *models.PostFilter) ([]models.PostDto, int, error) {
+func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, pf *models.PostFilter, admin bool) ([]models.PostDto, int, error) {
 	qfb := createFilterWithPostFilter(pf)
+
+	// non-admins can only see published (i.e., not archived media)
+	if !admin {
+		qfb.addFilter("status", db.Published)
+	}
 	filter := qfb.build()
 
 	// count total number of documents for HATEOAS in pagination
@@ -63,24 +68,40 @@ func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, 
 	return dtos, int(totalCount), nil
 }
 
-func (ps *PostServiceImpl) GetPostById(ctx context.Context, id primitive.ObjectID) (*models.PostDto, error) {
+func (ps *PostServiceImpl) GetPostById(ctx context.Context, id primitive.ObjectID, admin bool) (*models.PostDto, error) {
+	qfb := newQueryFilterBuilder()
+	qfb.addFilter("_id", id)
+
+	// non-admins can only see published (i.e., not archived media)
+	if !admin {
+		qfb.addFilter("status", db.Published)
+	}
+
 	var post db.Post
-	err := ps.posts.FindOne(ctx, bson.D{{"_id", id}}).Decode(&post)
+	err := ps.posts.FindOne(ctx, qfb.build()).Decode(&post)
 
 	if err != nil {
-		return nil, &NotFoundErr{id: id}
+		return nil, NotFoundErr{id: id}
 	}
 
 	postDto := mappers.ToDto(&post)
 	return &postDto, nil
 }
 
-func (ps *PostServiceImpl) GetPostBySlug(ctx context.Context, slug string) (*models.PostDto, error) {
+func (ps *PostServiceImpl) GetPostBySlug(ctx context.Context, slug string, admin bool) (*models.PostDto, error) {
+	qfb := newQueryFilterBuilder()
+	qfb.addFilter("slug", slug)
+
+	// non-admins can only see published (i.e., not archived media)
+	if !admin {
+		qfb.addFilter("status", db.Published)
+	}
+
 	var post db.Post
-	err := ps.posts.FindOne(ctx, bson.D{{"slug", slug}}).Decode(&post)
+	err := ps.posts.FindOne(ctx, qfb.build()).Decode(&post)
 
 	if err != nil {
-		return nil, &SlugNotFoundErr{slug: slug}
+		return nil, SlugNotFoundErr{slug: slug}
 	}
 
 	postDto := mappers.ToDto(&post)
@@ -121,11 +142,11 @@ func (ps *PostServiceImpl) UpdatePost(ctx context.Context, id primitive.ObjectID
 
 	if err != nil {
 		// chances are this is a conflict
-		return &ConflictErr{msg: err.Error()}
+		return ConflictErr{msg: err.Error()}
 	}
 
 	if res.MatchedCount == 0 {
-		return &NotFoundErr{id: id}
+		return NotFoundErr{id: id}
 	}
 
 	// ensure correctly set DTO value for ID
@@ -140,7 +161,7 @@ func (ps *PostServiceImpl) DeletePost(ctx context.Context, id primitive.ObjectID
 
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return &NotFoundErr{id: id}
+			return NotFoundErr{id: id}
 		} else {
 			return err
 		}
