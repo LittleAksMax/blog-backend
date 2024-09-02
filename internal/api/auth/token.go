@@ -18,3 +18,7 @@ func splitBearer(bearer string) (string, bool) {
 func checkExpired(token *auth.Token) bool {
 	return token.Expires < time.Now().Unix()
 }
+
+func CheckExists(bearer string) bool {
+	return bearer != ""
+}

@@ -63,9 +63,7 @@ func (pc *PostController) GetPost(ctx *gin.Context) {
 	}
 
 	if err != nil {
-		//var nfErr services.NotFoundErr
-		//var snfErr services.SlugNotFoundErr
-		if errors.Is(err, &services.NotFoundErr{}) || errors.Is(err, &services.SlugNotFoundErr{}) {
+		if errors.As(err, &services.NotFoundErr{}) || errors.As(err, &services.SlugNotFoundErr{}) {
 			// changes are the object was not found in the database
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		} else {

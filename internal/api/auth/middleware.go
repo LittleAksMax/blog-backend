@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	bearerTokenKey = "Authorization"
+	BearerTokenKey = "Authorization"
 	adminClaim     = "admin"
 	tokenKey       = "token"
 	adminKey       = "admin"
@@ -18,8 +18,8 @@ func ReadToken(authClient *auth.Client) gin.HandlerFunc {
 		var token *auth.Token = nil
 		var err error = nil
 
-		bearer := ctx.GetHeader(bearerTokenKey)
-		if bearer != "" { // bearer exists
+		bearer := ctx.GetHeader(BearerTokenKey)
+		if CheckExists(bearer) { // bearer exists
 			// remove 'Bearer' prefix
 			tokenStr, ok := splitBearer(bearer)
 			if ok { // we can split the token from the prefix (valid token format)

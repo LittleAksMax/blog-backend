@@ -3,6 +3,7 @@ package caching
 import (
 	"bytes"
 	"errors"
+	"github.com/LittleAksMax/blog-backend/internal/api/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"log"
@@ -14,6 +15,14 @@ type RequestHashFunc func(*gin.Context) string
 
 func (cm *CacheManager) Cache(duration time.Duration, hasher RequestHashFunc) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		bearer := ctx.GetHeader(auth.BearerTokenKey)
+
+		// we should never cache when there is auth header present
+		if auth.CheckExists(bearer) {
+			ctx.Next()
+			return
+		}
+
 		// get request key for checking if stored in cache
 		key := hasher(ctx)
 
