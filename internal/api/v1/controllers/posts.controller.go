@@ -165,8 +165,7 @@ func (pc *PostController) DeletePost(ctx *gin.Context) {
 	err := pc.ps.DeletePost(ctx, id)
 
 	if err != nil {
-		var nfErr services.NotFoundErr
-		if errors.Is(err, &nfErr) {
+		if errors.As(err, &services.NotFoundErr{}) {
 			// changes are the object was not found in the database
 			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		} else {
