@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/mappers"
 
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/models"
@@ -35,6 +36,10 @@ func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, 
 	totalCount, err := ps.posts.CountDocuments(ctx, filter)
 	if err != nil {
 		return nil, 0, err
+	}
+
+	if totalCount <= int64(pq.PageNum-1)*int64(pq.PageSize) {
+		return []models.PostDto{}, 0, PageNotFoundErr{pageNum: pq.PageNum, pageSize: pq.PageSize}
 	}
 
 	// fetch documents in current batch using current filter
@@ -120,7 +125,7 @@ func (ps *PostServiceImpl) CreatePost(ctx context.Context, dto *models.PostDto) 
 	res, err := ps.posts.InsertOne(ctx, post)
 
 	if err != nil {
-		return err
+		return ConflictErr{msg: err.Error()}
 	}
 
 	// set id for dto
@@ -138,7 +143,7 @@ func (ps *PostServiceImpl) UpdatePost(ctx context.Context, id primitive.ObjectID
 	}
 
 	post := mappers.ToDom(id, postStatus, dto)
-	res, err := ps.posts.ReplaceOne(ctx, primitive.D{{"_id", id}}, post)
+	res, err := ps.posts.ReplaceOne(ctx, primitive.D{{Key: "_id", Value: id}}, post)
 
 	if err != nil {
 		// chances are this is a conflict
@@ -157,7 +162,7 @@ func (ps *PostServiceImpl) UpdatePost(ctx context.Context, id primitive.ObjectID
 
 func (ps *PostServiceImpl) DeletePost(ctx context.Context, id primitive.ObjectID) error {
 	var post db.Post
-	err := ps.posts.FindOneAndDelete(ctx, bson.D{{"_id", id}}).Decode(&post)
+	err := ps.posts.FindOneAndDelete(ctx, bson.D{{Key: "_id", Value: id}}).Decode(&post)
 
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

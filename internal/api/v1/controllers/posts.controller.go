@@ -2,14 +2,20 @@ package controllers
 
 import (
 	"errors"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/models"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/services"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/validators"
 	"github.com/LittleAksMax/blog-backend/internal/db"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"net/http"
-	"time"
+)
+
+const (
+	PaginationTotalCountHeader = "X-Total-Count"
 )
 
 type PostController struct {
@@ -30,7 +36,12 @@ func (pc *PostController) GetPosts(ctx *gin.Context) {
 	posts, totalCount, err := pc.ps.GetPosts(ctx.Request.Context(), pq, pf, admin)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		if errors.As(err, &services.PageNotFoundErr{}) {
+			ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		} else {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
 	}
 
 	// form next and previous page pointers
@@ -45,6 +56,10 @@ func (pc *PostController) GetPosts(ctx *gin.Context) {
 	} else {
 		nextUri = next
 	}
+
+	// set total count header
+	ctx.Header(PaginationTotalCountHeader, strconv.Itoa(totalCount))
+
 	ctx.JSON(http.StatusOK, gin.H{"data": posts, "prev": prevUri, "next": nextUri})
 }
 
@@ -96,8 +111,7 @@ func (pc *PostController) CreatePost(ctx *gin.Context) {
 	err := pc.ps.CreatePost(ctx.Request.Context(), &dto)
 
 	if err != nil {
-		var cfErr services.ConflictErr
-		if errors.As(err, &cfErr) {
+		if errors.As(err, &services.ConflictErr{}) {
 			ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		} else {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

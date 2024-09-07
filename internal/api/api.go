@@ -17,7 +17,7 @@ func RunApi(port int, corsAllowedOrigins []string, dbCfg *db.Config, cacheCfg *c
 	r := gin.Default()
 
 	// attach CORS policy to engine
-	cors.AttachCORS(r, corsAllowedOrigins)
+	cors.AttachCORS(r, corsAllowedOrigins, []string{controllers.PaginationTotalCountHeader})
 
 	// create all relevant controllers and services for API
 	pc, hc := createControllers(dbCfg, cacheCfg)
