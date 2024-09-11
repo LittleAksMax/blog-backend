@@ -44,6 +44,8 @@ func (ps *PostServiceImpl) GetPosts(ctx context.Context, pq *models.PagedQuery, 
 
 	// fetch documents in current batch using current filter
 	opts := createOptionsWithPagedQuery(pq)
+	// sort in descending order of published (newest first)
+	opts.SetSort(bson.D{{"published", -1}})
 	cursor, err := ps.posts.Find(ctx, filter, opts)
 
 	if err != nil {

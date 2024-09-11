@@ -1,17 +1,16 @@
 package v1
 
 import (
+	"firebase.google.com/go/v4/auth"
 	authMiddleware "github.com/LittleAksMax/blog-backend/internal/api/auth"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/caching"
-	"time"
-
-	"firebase.google.com/go/v4/auth"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/controllers"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/models"
 	"github.com/LittleAksMax/blog-backend/internal/api/v1/validators"
 	fbAuth "github.com/LittleAksMax/blog-backend/internal/auth"
 	"github.com/LittleAksMax/blog-backend/internal/cache"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 func addPostsRoutes(versionGroup *gin.RouterGroup, pc *controllers.PostController, cm *caching.CacheManager, authClient *auth.Client) {

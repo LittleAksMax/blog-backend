@@ -42,7 +42,6 @@ func createFilterWithPostFilter(pf *models.PostFilter) *queryFilterBuilder {
 
 func createOptionsWithPagedQuery(pq *models.PagedQuery) *options.FindOptions {
 	opts := options.Find()
-	opts.SetSkip(int64((pq.PageNum - 1) * pq.PageSize))
-	opts.SetLimit(int64(pq.PageSize))
+	opts.SetSkip(int64((pq.PageNum - 1) * pq.PageSize)).SetLimit(int64(pq.PageSize))
 	return opts
 }

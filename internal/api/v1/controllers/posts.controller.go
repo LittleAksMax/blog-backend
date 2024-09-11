@@ -14,10 +14,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-const (
-	PaginationTotalCountHeader = "X-Total-Count"
-)
-
 type PostController struct {
 	ps  services.PostService
 	cps services.ContentParserService
@@ -57,10 +53,12 @@ func (pc *PostController) GetPosts(ctx *gin.Context) {
 		nextUri = next
 	}
 
-	// set total count header
-	ctx.Header(PaginationTotalCountHeader, strconv.Itoa(totalCount))
-
-	ctx.JSON(http.StatusOK, gin.H{"data": posts, "prev": prevUri, "next": nextUri})
+	ctx.JSON(http.StatusOK, gin.H{
+		"data":        posts,
+		"prev":        prevUri,
+		"next":        nextUri,
+		"total_count": strconv.Itoa(totalCount),
+	})
 }
 
 func (pc *PostController) GetPost(ctx *gin.Context) {
