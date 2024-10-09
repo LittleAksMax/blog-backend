@@ -1,6 +1,7 @@
 services:
   api:
-    container_name: blogapi
+    container_name: blog_api
+    hostname: blogapi
     image: blogapi:devlatest
     depends_on:
       - blog_db
@@ -15,6 +16,10 @@ services:
     build:
       context: .
       dockerfile: cmd/blog/Dockerfile
+    networks:
+      blog_backend:
+        aliases:
+          - blogapi
   blog_db:
     container_name: blog_db
     hostname: blog_db
@@ -26,6 +31,8 @@ services:
     restart: on-failure
     volumes:
       - ./mongodb:/data/db
+    networks:
+      - blog_backend
   blog_cache:
     container_name: blog_cache
     hostname: blog_cache
@@ -35,3 +42,9 @@ services:
       - "./redis/redis.conf:/usr/local/etc/redis/redis.conf"
     ports:
       - "6379:6379"
+    networks:
+      - blog_backend
+
+networks:
+  blog_backend:
+    name: blog_backend
