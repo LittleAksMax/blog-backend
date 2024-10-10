@@ -8,6 +8,7 @@ import (
 	"github.com/LittleAksMax/blog-backend/internal/cache"
 	"github.com/LittleAksMax/blog-backend/internal/config"
 	"github.com/LittleAksMax/blog-backend/internal/db"
+	"github.com/LittleAksMax/blog-backend/internal/logging"
 	"github.com/gin-gonic/gin"
 	"log"
 	"runtime"
@@ -24,12 +25,15 @@ func main() {
 	if gin.Mode() == gin.DebugMode {
 		config.InitDotenv(".env.Dev")
 	} else if gin.Mode() == gin.ReleaseMode {
+		gin.DisableConsoleColor()
 		// config.InitDotenv(".env")
 	} else {
 		log.Fatalf("Unsupported Gin Mode: %s", gin.Mode())
 	}
 
 	cfg := config.InitConfig()
+
+	logWriter := logging.InitLogging(cfg.LogFile)
 
 	dbCfg := db.InitDb(ctx, cfg.DbHost, cfg.DbPort, cfg.DbUser, cfg.DbPasswd, cfg.DbName)
 	defer dbCfg.CloseDb()
@@ -39,5 +43,5 @@ func main() {
 
 	authCfg := auth.InitAuth(ctx, cfg.FirebaseProjectID, cfg.FirebaseCredentialFile)
 
-	api.RunApi(cfg.ApiPort, cfg.CorsAllowedOrigins, dbCfg, cacheCfg, authCfg)
+	api.RunApi(cfg.ApiPort, cfg.CorsAllowedOrigins, logWriter, dbCfg, cacheCfg, authCfg)
 }

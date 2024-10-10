@@ -11,9 +11,14 @@ import (
 	"github.com/LittleAksMax/blog-backend/internal/cache"
 	"github.com/LittleAksMax/blog-backend/internal/db"
 	"github.com/gin-gonic/gin"
+	"io"
 )
 
-func RunApi(port int, corsAllowedOrigins []string, dbCfg *db.Config, cacheCfg *cache.Config, authCfg *fbAuth.Config) {
+func RunApi(port int, corsAllowedOrigins []string, logWriter io.Writer, dbCfg *db.Config, cacheCfg *cache.Config, authCfg *fbAuth.Config) {
+	// set up default writer to be used by default router
+	gin.DefaultWriter = logWriter
+
+	// use default router
 	r := gin.Default()
 
 	// attach CORS policy to engine

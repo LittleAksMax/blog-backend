@@ -22,6 +22,7 @@ const (
 	cachePortKey              = "REDIS_PORT"
 	cachePasswdKey            = "REDIS_PASSWORD"
 	corsAllowedOriginsKey     = "CORS_ALLOWED_ORIGINS"
+	logFileKey                = "LOG_FILE_PATH"
 )
 
 type Config struct {
@@ -41,6 +42,8 @@ type Config struct {
 	CachePasswd string
 
 	CorsAllowedOrigins []string
+
+	LogFile string
 }
 
 func readPort(key string) int {
@@ -85,5 +88,7 @@ func InitConfig() *Config {
 		CachePasswd: os.Getenv(cachePasswdKey),
 
 		CorsAllowedOrigins: readList(os.Getenv(corsAllowedOriginsKey)),
+
+		LogFile: os.Getenv(logFileKey),
 	}
 }

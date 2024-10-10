@@ -11,6 +11,7 @@ services:
       - .env.Docker
     volumes:
       - "./appdata/blog-868a1-credentials.json:/app/blog-868a1-credentials.json"
+      - "./appdata/log:/var/log"
     environment:
       GIN_MODE: release
     build:
