@@ -9,21 +9,27 @@ import (
 func validateRequest(ctx *gin.Context, reqPtr interface{}) (map[string]string, bool) {
 	newCtx := ctx.Copy()
 	if err := newCtx.ShouldBindJSON(reqPtr); err != nil {
-		// If validation fails, respond with an error
+		// If validation fails, respond with an exrror
 		if errs, ok := err.(validator.ValidationErrors); ok {
 			errorMessages := make(map[string]string)
 			for _, fieldError := range errs {
 				fieldName := fieldError.Field()
-				field, _ := reflect.TypeOf(reqPtr).Elem().FieldByName(fieldName)
-
-				fieldJSONName, ok := field.Tag.Lookup("json")
+				tag := fieldError.Tag()
 
 				var key string
-				if ok {
-					key = fieldJSONName
-				} else {
+				// if we failed on the required tag
+				if tag == "required" {
 					key = fieldName
+				} else {
+					field, _ := reflect.TypeOf(reqPtr).Elem().FieldByName(fieldName)
+
+					if fieldJSONName, ok := field.Tag.Lookup("json"); ok {
+						key = fieldJSONName
+					} else {
+						key = fieldName
+					}
 				}
+
 				errorMessages[key] = fieldError.Tag()
 			}
 			return errorMessages, false
