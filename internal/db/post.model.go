@@ -43,6 +43,7 @@ type Post struct {
 	Slug        string             `bson:"slug"`
 	Content     string             `bson:"content"`
 	Media       []string           `bson:"media"`
+	Banner      string             `bson:"banner"`
 	Collections []string           `bson:"collections"`
 	Tags        []string           `bson:"tags"`
 	Published   time.Time          `bson:"published"`

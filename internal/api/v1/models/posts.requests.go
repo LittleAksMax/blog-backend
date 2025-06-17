@@ -21,6 +21,7 @@ type CreatePostRequest struct {
 	Title       string   `json:"title" binding:"required"`
 	Content     string   `json:"content" binding:"required"`
 	Collections []string `json:"collections" binding:"required"`
+	Banner      *string  `binding:"required" json:"banner"` // pointer to make validation work
 	Tags        []string `json:"tags" binding:"required"`
 	Featured    *bool    `json:"featured" binding:"required"` // pointer to make validation work
 }
@@ -29,6 +30,7 @@ type UpdatePostRequest struct {
 	Title       string   `binding:"required" json:"title"`
 	Content     string   `binding:"required" json:"content"`
 	Collections []string `binding:"required" json:"collections"`
+	Banner      *string  `binding:"required" json:"banner"`
 	Tags        []string `binding:"required" json:"tags"`
 	Status      string   `binding:"required" json:"status"`
 	Featured    *bool    `binding:"required" json:"featured"`

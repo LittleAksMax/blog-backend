@@ -12,6 +12,7 @@ type PostDto struct {
 	Slug        string    `json:"slug"`
 	Content     string    `json:"content"`
 	Media       []string  `json:"media"`
+	Banner      string    `json:"banner"`
 	Collections []string  `json:"collections"`
 	Tags        []string  `json:"tags"`
 	Published   time.Time `json:"published"`
