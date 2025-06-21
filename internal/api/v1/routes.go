@@ -20,6 +20,7 @@ func addPostsRoutes(versionGroup *gin.RouterGroup, pc *controllers.PostControlle
 		postsGroup.GET("/:idOrSlug", authMiddleware.ReadToken(authClient), authMiddleware.ReadAdmin, validators.RouteIdOrSlugValidate(), cm.Cache(time.Minute*5, caching.HashGetPost), pc.GetPost)
 		postsGroup.POST("/", authMiddleware.ReadToken(authClient), authMiddleware.ReadAdmin, authMiddleware.RequiresAdmin, validators.ReqValidate[*models.CreatePostRequest], pc.CreatePost)
 		postsGroup.PUT("/:id", authMiddleware.ReadToken(authClient), authMiddleware.ReadAdmin, authMiddleware.RequiresAdmin, validators.RouteIdValidate(), validators.ReqValidate[*models.UpdatePostRequest], validators.UpdateReqValidate, pc.UpdatePost)
+		postsGroup.PUT("/:id/archive", authMiddleware.ReadToken(authClient), authMiddleware.ReadAdmin, authMiddleware.RequiresAdmin, validators.RouteIdValidate(), pc.ArchivePost)
 		postsGroup.DELETE("/:id", authMiddleware.ReadToken(authClient), authMiddleware.ReadAdmin, authMiddleware.RequiresAdmin, validators.RouteIdValidate(), pc.DeletePost)
 	}
 }

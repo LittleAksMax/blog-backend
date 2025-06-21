@@ -162,6 +162,20 @@ func (ps *PostServiceImpl) UpdatePost(ctx context.Context, id primitive.ObjectID
 	return nil
 }
 
+func (ps *PostServiceImpl) ArchivePost(ctx context.Context, id primitive.ObjectID) error {
+	res, err := ps.posts.UpdateByID(ctx, id, primitive.D{{"$set", bson.D{{"status", db.Archived}}}})
+
+	if err != nil {
+		return err // NOTE: I don't know how this could possibly happen
+	}
+
+	if res.MatchedCount == 0 {
+		return NotFoundErr{id: id}
+	}
+
+	return nil
+}
+
 func (ps *PostServiceImpl) DeletePost(ctx context.Context, id primitive.ObjectID) error {
 	var post db.Post
 	err := ps.posts.FindOneAndDelete(ctx, bson.D{{Key: "_id", Value: id}}).Decode(&post)

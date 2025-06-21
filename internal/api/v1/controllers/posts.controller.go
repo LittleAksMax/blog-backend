@@ -173,6 +173,26 @@ func (pc *PostController) UpdatePost(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
+func (pc *PostController) ArchivePost(ctx *gin.Context) {
+	id := ctx.MustGet("id").(primitive.ObjectID)
+
+	err := pc.ps.ArchivePost(ctx.Request.Context(), id)
+
+	if err != nil {
+		var nfErr services.NotFoundErr
+		if errors.As(err, &nfErr) {
+			// changes are the object was not found in the database
+			ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		}
+		return
+	}
+
+	// The work completed without cancellation
+	ctx.Status(http.StatusOK)
+}
+
 func (pc *PostController) DeletePost(ctx *gin.Context) {
 	id := ctx.MustGet("id").(primitive.ObjectID)
 

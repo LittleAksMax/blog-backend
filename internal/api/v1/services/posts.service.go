@@ -12,5 +12,6 @@ type PostService interface {
 	GetPostBySlug(ctx context.Context, slug string, admin bool) (*models.PostDto, error)
 	CreatePost(ctx context.Context, dto *models.PostDto) error
 	UpdatePost(ctx context.Context, id primitive.ObjectID, dto *models.PostDto) error
+	ArchivePost(ctx context.Context, id primitive.ObjectID) error
 	DeletePost(ctx context.Context, id primitive.ObjectID) error
 }
